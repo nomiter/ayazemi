@@ -5,14 +5,14 @@ def a_star(edge_map, start_node, goal_node):
     """
     edge_map: { '0': {'pos': (x, y), 'edges': [('1', cost), ...]}, ... }
     """
-    # ゴールまでの予測距離 (h(n)) を計算するヒューリスティック関数
+    # ゴールまでの予測距離 (h(n)) を計算するヒューリスティック関数(未来の推定価値)
     def get_h(u):
         pos_u = edge_map[u]['pos']
         pos_g = edge_map[goal_node]['pos']
         return math.hypot(pos_u[0] - pos_g[0], pos_u[1] - pos_g[1])
 
     # 1. 初期化
-    distances = {node: float('inf') for node in edge_map} # g(n)
+    distances = {node: float('inf') for node in edge_map} # g(n)（現在までの確定価値　無限にしておく）
     distances[start_node] = 0
     
     # 優先度付きキュー: (f(n), g(n), current_node)
