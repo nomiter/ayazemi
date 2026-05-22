@@ -1,2 +1,4 @@
 *.pyc
 *.png
+/home/jovyan/work/cache/*
+/home/jovyan/work/mukasi/*
