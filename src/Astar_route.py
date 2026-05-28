@@ -1,59 +1,73 @@
 import heapq
 import math
 
-def a_star(edge_map, start_node, goal_node):
+
+def a_star(sim_map, start_node, goal_node):
+    """クラス連動版 A* アルゴリズム
+
+    第一引数に辞書ではなく、Mapクラスのインスタンス(sim_map)を受け取ります。
     """
-    edge_map: { '0': {'pos': (x, y), 'edges': [('1', cost), ...]}, ... }
-    """
-    # ゴールまでの予測距離 (h(n)) を計算するヒューリスティック関数(未来の推定価値)
-    def get_h(u):
-        pos_u = edge_map[u]['pos']
-        pos_g = edge_map[goal_node]['pos']
+    start_node = str(start_node)
+    goal_node = str(goal_node)
+
+    # 0. ヒューリスティック関数（直線距離）の定義
+    # 💡【修正】sim_map の get_pos メソッドを使って座標を取得するように変更
+    def heuristic(u, g):
+        pos_u = sim_map.get_pos(u)
+        pos_g = sim_map.get_pos(g)
         return math.hypot(pos_u[0] - pos_g[0], pos_u[1] - pos_g[1])
 
     # 1. 初期化
-    distances = {node: float('inf') for node in edge_map} # g(n)（現在までの確定価値　無限にしておく）
+    # 💡【修正】sim_map.node_list からノードの一覧をループで回すように変更
+    distances = {node: float("inf") for node in sim_map.node_list}
     distances[start_node] = 0
-    
+
     # 優先度付きキュー: (f(n), g(n), current_node)
-    # f(n) = g(n) + h(n)
-    pq = [(get_h(start_node), 0, start_node)]
-    
-    previous_nodes = {node: None for node in edge_map}
+    queue = [(heuristic(start_node, goal_node), 0, start_node)]
 
-    while pq:
-        _, current_g, u = heapq.heappop(pq)
+    # 経路復元用の親ノード辞書
+    parent_map = {}
 
-        # ゴール判定
+    # 2. 探索ループ
+    while queue:
+        current_f, current_g, u = heapq.heappop(queue)
+
+        # ゴールに到達したら終了
         if u == goal_node:
             break
 
+        # 既にこれより短い経路で確定していればスキップ
         if current_g > distances[u]:
             continue
-            
-        # 2. 隣接ノードの探索
-        for v, weight in edge_map[u]['edges']:
-            g_v = current_g + weight
-            
-            # 3. コスト更新
-            if g_v < distances[v]:
-                distances[v] = g_v
-                f_v = g_v + get_h(v) # A* の肝：実コスト + 予測コスト
-                previous_nodes[v] = u
-                heapq.heappush(pq, (f_v, g_v, v))
-                
-    # 4. 経路復元
+
+        # 隣接ノードを探索
+        # 💡【修正】sim_map.graph から隣接エッジを引っ張ってくるように変更
+        for v, _ in sim_map.graph[u]["edges"]:
+
+            # 💡【大改造の肝！】
+            # 固定の距離ではなく、その道の「いま現在のリアルな渋滞コスト」を取得する！
+            weight = sim_map.get_real_distance(u, v)
+
+            # 新しい g(n) の計算
+            new_g = current_g + weight
+
+            if new_g < distances[v]:
+                distances[v] = new_g
+                parent_map[v] = u
+                # f(n) = g(n) + h(n)
+                f_cost = new_g + heuristic(v, goal_node)
+                heapq.heappush(queue, (f_cost, new_g, v))
+
+    # 3. 経路の復元
+    if goal_node not in parent_map and start_node != goal_node:
+        return []  # 経路が見つからなかった場合
+
     path = []
     curr = goal_node
-    while curr is not None:
+    while curr != start_node:
         path.append(curr)
-        curr = previous_nodes[curr]
+        curr = parent_map[curr]
+    path.append(start_node)
     path.reverse()
-    
-    # 出力
-    print(f"=== A* アルゴリズム 結果 (始点: {start_node} -> 終点: {goal_node}) ===")
-    print(f"[最短経路]: {' -> '.join(path) if len(path) > 0 and path[0] == start_node else '到達不可'}")
-    print(f"[合計コスト]: {distances[goal_node]}")
-    print("==========================================================")
-    
+
     return path
