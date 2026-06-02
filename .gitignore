@@ -1,4 +1,5 @@
 *.pyc
 *.png
+*.csv
 /home/jovyan/work/cache/*
 /home/jovyan/work/mukasi/*

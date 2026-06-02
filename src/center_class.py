@@ -66,7 +66,9 @@ class Center:
     def visualize(self, current_time):
         """Jupyter Notebook上への2画面分割マルチモーダルダッシュボード描画"""
         clear_output(wait=True)
-        fig = plt.figure(figsize=(24, 12))
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Hiragino Maru Gothic Pro', 'Yu Gothic', 'Meiryo', 'TakaoExGothic', 'IPAexGothic', 'DejaVu Sans']
+        fig = plt.figure(figsize=(24, 12),dpi=100)
 
         # --- 左画面: マップビュー ---
         ax1 = plt.subplot(1, 2, 1)
@@ -125,7 +127,7 @@ class Center:
         ax2.axis("off")
 
         info_text = "=========================================\n"
-        info_text += " 🤖 AGENT STATUS (エージェント運行状況)\n"
+        info_text += "AGENT STATUS (エージェント運行状況)\n"
         info_text += "=========================================\n"
         for ag in self.agents.values():
             loc = f"ノード {ag.current_node}" if ag.next_node is None else f"{ag.current_node} ➔ {ag.next_node}"
@@ -151,7 +153,7 @@ class Center:
             for oid, order in self.active_orders.items():
                 info_text += f"・【{oid}】 状態: {order.status:<9} | ルート: ノード {order.origin} ➔ {order.destination} | 期限: {order.deadline}s\n"
 
-        ax2.text(0.02, 0.95, info_text, fontsize=12, fontfamily="monospace", va="top", ha="left",
+        ax2.text(0.02, 0.95, info_text, fontsize=12, fontfamily="sans-selifs", va="top", ha="left",
                  bbox=dict(facecolor="whitesmoke", alpha=0.8, edgecolor="gainsboro", boxstyle="round,pad=1"))
         ax2.set_title("System Fleet Dashboard", fontsize=14, weight="bold")
 
